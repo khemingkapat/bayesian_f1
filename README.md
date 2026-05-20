@@ -15,23 +15,20 @@ This project uses a Bayesian Network to predict the probability of a Formula 1 d
 This project uses Nix and `uv` to keep the Python environment perfectly isolated and reproducible.
 
 1. Open your terminal in the project folder and load the Nix shell:
-   ```bash
+    ```bash
    nix develop
-
-```
+    ```
 
 2. Install the required Python packages:
-```bash
-uv sync
-
-```
+    ```bash
+    uv sync
+    ```
 
 
 3. Start Jupyter Lab to run the data extraction scripts:
-```bash
-uv run jupyter lab
-
-```
+    ```bash
+    uv run jupyter lab
+    ```
 
 
 
