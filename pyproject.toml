@@ -1,0 +1,11 @@
+[project]
+name = "bayesian-f1"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastf1>=3.8.3",
+    "jupyterlab>=4.5.7",
+    "pandas>=2.3.3",
+]
