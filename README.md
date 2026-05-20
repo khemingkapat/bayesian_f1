@@ -30,6 +30,14 @@ This project uses Nix and `uv` to keep the Python environment perfectly isolated
     uv run jupyter lab
     ```
 
+## Network Design
+```mermaid
+graph TD
+    Driver_Skill_25 --> Expected_Race_Pace_26
+    Team_Legacy_25 --> Expected_Race_Pace_26
+    Expected_Race_Pace_26 --> Win_Championship_26
+    Reliability_26 --> Win_Championship_26
+```
 
 
 ## The Data Pipeline
