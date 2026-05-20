@@ -8,7 +8,7 @@
   outputs =
     { self, nixpkgs }:
     let
-      system = "x86_64-linux"; # Change to aarch64-darwin if you are on a Mac
+      system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
     in
     {
@@ -16,7 +16,19 @@
         buildInputs = with pkgs; [
           uv
           python311
+
+          # Added system libraries needed by pre-compiled Python wheels (Jupyter, Pandas, etc.)
+          stdenv.cc.cc.lib
+          zlib
         ];
+
+        # Tell the environment exactly where to find those libraries
+        env = {
+          LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath [
+            pkgs.stdenv.cc.cc.lib
+            pkgs.zlib
+          ];
+        };
 
         shellHook = ''
           echo "🏁 F1 Bayesian Network Environment"
