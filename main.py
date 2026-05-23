@@ -42,12 +42,12 @@ def get_raw_race_results(year):
     return pd.DataFrame(all_race_data)
 
 
-def _add_finished_flag(df):
+def add_finished_flag(df):
     df["Finished"] = df["Status"].isin(["Finished", "Lapped"]).astype(int)
     return df
 
 
-def _get_driver_skill(df_prior, prior_year):
+def get_driver_skill(df_prior, prior_year):
     driver_team = df_prior.groupby("Driver_Code")["Team"].first().to_dict()
 
     team_points = df_prior.groupby("Team")["Points_Scored"].sum().to_dict()
@@ -92,7 +92,7 @@ def _get_driver_skill(df_prior, prior_year):
     ]
 
 
-def _get_reliability(df_current, current_year):
+def get_reliability(df_current, current_year):
     df = df_current.groupby("Driver_Code")["Finished"].mean().reset_index()
 
     mean_val, std_val = df["Finished"].mean(), df["Finished"].std()
@@ -107,7 +107,7 @@ def _get_reliability(df_current, current_year):
     return df[["Driver_Code", f"Reliability_{current_year}"]]
 
 
-def _get_expected_race_pace(df_current, current_year):
+def get_expected_race_pace(df_current, current_year):
     df = (
         df_current.dropna(subset=["Finish_Position"])
         .groupby("Driver_Code")["Finish_Position"]
@@ -115,10 +115,14 @@ def _get_expected_race_pace(df_current, current_year):
         .reset_index()
     )
 
+    # 2. Rank drivers relative to each other (1 = best/lowest average position)
+    df["Driver_Rank"] = df["Finish_Position"].rank(method="min", ascending=True)
+
+    # 3. Categorize based on relative rank thresholds
     df[f"Expected_Race_Pace_{current_year}"] = np.select(
         [
-            df["Finish_Position"] <= 3.5,
-            df["Finish_Position"] <= 10.5,
+            df["Driver_Rank"] <= 3,  # Top 3 best averages on the grid
+            df["Driver_Rank"] <= 10,  # Ranks 4 to 10 on the grid
         ],
         ["P1_P3", "P4_P10"],
         default="Out_of_Points",
@@ -127,7 +131,7 @@ def _get_expected_race_pace(df_current, current_year):
     return df[["Driver_Code", f"Expected_Race_Pace_{current_year}"]]
 
 
-def _get_championship_standing(df_current, current_year):
+def get_championship_standing(df_current, current_year):
     df = (
         df_current.groupby("Driver_Code")["Points_Scored"]
         .sum()
@@ -153,13 +157,13 @@ def _get_championship_standing(df_current, current_year):
 def get_final_data(current_year):
     prior_year = current_year - 1
 
-    df_current = _add_finished_flag(get_raw_race_results(current_year))
-    df_prior = _add_finished_flag(get_raw_race_results(prior_year))
+    df_current = add_finished_flag(get_raw_race_results(current_year))
+    df_prior = add_finished_flag(get_raw_race_results(prior_year))
 
-    df_skill = _get_driver_skill(df_prior, prior_year)
-    df_reliability = _get_reliability(df_current, current_year)
-    df_pace = _get_expected_race_pace(df_current, current_year)
-    df_standing = _get_championship_standing(df_current, current_year)
+    df_skill = get_driver_skill(df_prior, prior_year)
+    df_reliability = get_reliability(df_current, current_year)
+    df_pace = get_expected_race_pace(df_current, current_year)
+    df_standing = get_championship_standing(df_current, current_year)
 
     df_final = (
         df_skill.merge(df_reliability, on="Driver_Code", how="inner")
